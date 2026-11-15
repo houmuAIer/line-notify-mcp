@@ -1,0 +1,26 @@
+# Copy to wrangler.toml and fill in the three placeholders, or let
+# scripts/setup.mjs do it. wrangler.toml is not committed.
+name = "line-notify-mcp"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["global_fetch_strictly_public"]
+workers_dev = true
+
+[vars]
+# Numeric ID of the only GitHub account allowed to sign in
+# (https://api.github.com/users/<login> shows it as "id").
+ALLOWED_GITHUB_USER_ID = "REPLACE_WITH_GITHUB_USER_ID"
+TIMEZONE = "Asia/Tokyo"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "line-notify"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+[[kv_namespaces]]
+binding = "OAUTH_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# Secrets (set with `wrangler secret put`, never committed):
+#   GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET

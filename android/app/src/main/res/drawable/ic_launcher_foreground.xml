@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- A speech bubble with an upward arrow. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,34h36a8,8 0,0 1,8 8v22a8,8 0,0 1,-8 8H52l-10,9v-9h-6a8,8 0,0 1,-8 -8V42a8,8 0,0 1,8 -8z" />
+    <path
+        android:fillColor="#1F6F5C"
+        android:pathData="M54,42l10,10h-6.5v12h-7V52H44z" />
+</vector>

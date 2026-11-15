@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LINE通知キャプチャ</string>
+    <string name="listener_label">LINE通知キャプチャ</string>
+
+    <string name="section_connection">接続</string>
+    <string name="status_unpaired">未ペアリング</string>
+    <string name="status_paired">接続済み: %1$s</string>
+    <string name="status_revoked">この端末は失効しています（別の端末に移行済み、または手動で失効）。続けて使う場合はペアリングし直してください。</string>
+    <string name="pairing_hint">ペアリング文字列を貼り付け（https://…#XXXXX-XXXXX）</string>
+    <string name="pairing_help">Claude に「LINE通知のペアリングコードを出して」と頼み、表示された文字列をそのまま貼り付けてください。機種変更や初期化のあとも同じ手順です。新しい端末をペアリングすると、前の端末は自動で失効します。</string>
+    <string name="pair_button">ペアリング</string>
+    <string name="pairing_in_progress">ペアリング中…</string>
+    <string name="pairing_done">ペアリングしました。</string>
+    <string name="pairing_bad_format">形式が違います。https:// で始まり、# のあとにコードが続く文字列を貼り付けてください。</string>
+    <string name="pairing_bad_code">コードが無効です（期限切れか使用済み）。新しいコードを発行してください。</string>
+    <string name="pairing_failed">ペアリングに失敗しました: %1$s</string>
+
+    <string name="section_setup">端末の設定</string>
+    <string name="notification_access_on">通知へのアクセス: 有効</string>
+    <string name="notification_access_off">通知へのアクセス: 無効（必須）</string>
+    <string name="battery_ok">電池の最適化: 除外済み</string>
+    <string name="battery_not_ok">電池の最適化: 未除外（止まりやすくなります）</string>
+    <string name="open_settings">設定を開く</string>
+    <string name="restricted_help">通知へのアクセスを有効にできない場合: このアプリは Play ストア外からのインストールのため、先に「アプリ情報」右上のメニューから「制限付き設定を許可」を選ぶ必要があります。</string>
+    <string name="open_app_info">アプリ情報を開く</string>
+
+    <string name="section_upload">送信状況</string>
+    <string name="upload_status">未送信: %1$d 件\n最終送信: %2$s\n直近のエラー: %3$s</string>
+    <string name="none">なし</string>
+    <string name="send_now">今すぐ送信</string>
+
+    <string name="section_chats">取り込むトーク</string>
+    <string name="chats_help">オフにしたトークは、この端末から送信されません。企業の公式アカウントはここでオフにしてください。新しく見つかったトークは既定でオンです。</string>
+    <string name="exclude_hint">除外するトーク名を先に登録</string>
+    <string name="add">追加</string>
+    <string name="no_chats">まだトークが見つかっていません。</string>
+
+    <string name="section_recent">直近に取得したメッセージ（この端末内の表示用）</string>
+    <string name="no_recent">まだありません。</string>
+    <string name="recent_line">%1$s｜%2$s｜%3$s\n%4$s</string>
+</resources>

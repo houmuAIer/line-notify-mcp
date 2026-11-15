@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView style="@android:style/TextAppearance.DeviceDefault.Medium"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="@string/section_connection" android:textStyle="bold" />
+        <TextView android:id="@+id/connection_status"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" />
+        <EditText android:id="@+id/pairing_input"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/pairing_hint" android:importantForAutofill="no"
+            android:inputType="textUri|textNoSuggestions" android:minHeight="48dp" />
+        <Button android:id="@+id/pair_button"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="@string/pair_button" />
+        <TextView android:id="@+id/pairing_message"
+            android:layout_width="match_parent" android:layout_height="wrap_content" />
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="4dp" android:text="@string/pairing_help"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small" />
+
+        <TextView style="@android:style/TextAppearance.DeviceDefault.Medium"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="@string/section_setup" android:textStyle="bold" />
+        <TextView android:id="@+id/notification_access_status"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" />
+        <Button android:id="@+id/notification_access_button"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="@string/open_settings" />
+        <TextView android:id="@+id/battery_status"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" />
+        <Button android:id="@+id/battery_button"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="@string/open_settings" />
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" android:text="@string/restricted_help"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small" />
+        <Button android:id="@+id/app_info_button"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="@string/open_app_info" />
+
+        <TextView style="@android:style/TextAppearance.DeviceDefault.Medium"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="@string/section_upload" android:textStyle="bold" />
+        <TextView android:id="@+id/upload_status"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" />
+        <Button android:id="@+id/send_now_button"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="@string/send_now" />
+
+        <TextView style="@android:style/TextAppearance.DeviceDefault.Medium"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="@string/section_chats" android:textStyle="bold" />
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" android:text="@string/chats_help"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small" />
+        <LinearLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <EditText android:id="@+id/exclude_input"
+                android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:hint="@string/exclude_hint" android:importantForAutofill="no"
+                android:inputType="text" android:minHeight="48dp" />
+            <Button android:id="@+id/exclude_button"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="@string/add" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/chat_list"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <TextView style="@android:style/TextAppearance.DeviceDefault.Medium"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="@string/section_recent" android:textStyle="bold" />
+        <TextView android:id="@+id/recent_list"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small" />
+    </LinearLayout>
+</ScrollView>

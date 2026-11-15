@@ -1,0 +1,10 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.kotlin/
+# Signing material stays on the machine that builds the app.
+keystore.properties
+*.jks
+*.keystore
