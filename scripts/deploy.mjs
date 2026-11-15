@@ -6,7 +6,7 @@
 //
 // <dir> is where your deployment's wrangler.toml lives (it is written on the
 // first run). Keep it outside this repository: it holds your resource IDs.
-// Requires `wrangler login` to have been done on this machine.
+// Logs in to Cloudflare through the browser if this machine is not logged in yet.
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
@@ -90,9 +90,15 @@ if (!existsSync(join(workerDir, 'node_modules', 'wrangler'))) {
   const install = spawnSync('npm ci --legacy-peer-deps', { cwd: workerDir, stdio: 'inherit', shell: true });
   if (install.status !== 0) fail('npm ci failed');
 }
-const whoami = wrangler(['whoami'], { quiet: true, allowFailure: true, useConfig: false });
-if (!whoami.ok || /not authenticated/i.test(whoami.stdout)) {
-  fail('not logged in to Cloudflare. Run `npx wrangler login` in the worker folder, then run this again.');
+const loggedIn = () => {
+  const result = wrangler(['whoami'], { quiet: true, allowFailure: true, useConfig: false });
+  return result.ok && /you are logged in/i.test(result.stdout);
+};
+if (!loggedIn()) {
+  // wrangler opens the browser; the user approves there and it saves the login on this machine.
+  console.log('Not logged in to Cloudflare. A browser window will open: press "Allow" there.');
+  const login = spawnSync(process.execPath, [wranglerBin, 'login'], { cwd: workerDir, stdio: 'inherit' });
+  if (login.status !== 0 || !loggedIn()) fail('Cloudflare login did not complete. Run this again.');
 }
 console.log('Logged in to Cloudflare.');
 

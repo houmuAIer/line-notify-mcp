@@ -44,14 +44,13 @@ LINE 株式会社とは無関係の非公式ツールです。
 ```sh
 cd worker
 npm ci --legacy-peer-deps
-npx wrangler login
 cd ..
 node scripts/deploy.mjs --config-dir ../line-notify-mcp-private --github-user-id <GitHub の数値ユーザー ID>
 ```
 
 数値ユーザー ID は `https://api.github.com/users/<ユーザー名>` の `id` です。
 
-スクリプトは D1 と KV を作成し、`--config-dir` に `wrangler.toml` を書き出してデプロイします。初回は GitHub OAuth アプリの作成手順が表示されるので、Client ID と Client secret を入力してください。2 回目以降は差分だけを反映します。
+Cloudflare に未ログインならブラウザが開くので、許可してください。続けてスクリプトが D1 と KV を作成し、`--config-dir` に `wrangler.toml` を書き出してデプロイします。初回は GitHub OAuth アプリの作成手順が表示されるので、Client ID と Client secret を入力してください。2 回目以降は差分だけを反映します。
 
 ### 2. Claude
 
