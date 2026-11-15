@@ -11,7 +11,7 @@ data class RecentEntry(val chat: String, val sender: String, val body: String, v
 
 /** Local state: the upload queue, the chats seen so far, and what was already captured. */
 class Store private constructor(context: Context) :
-    SQLiteOpenHelper(context.applicationContext, "capture.db", null, 1) {
+    SQLiteOpenHelper(context.applicationContext, "capture.db", null, 2) {
 
     companion object {
         private const val SEEN_KEEP_MS = 14L * 24 * 60 * 60 * 1000
@@ -41,9 +41,35 @@ class Store private constructor(context: Context) :
                  id INTEGER PRIMARY KEY AUTOINCREMENT, chat TEXT NOT NULL, sender TEXT NOT NULL,
                  body TEXT NOT NULL, sent_at INTEGER NOT NULL)"""
         )
+        createDiagnostics(db)
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
+    private fun createDiagnostics(db: SQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS diagnostics (id INTEGER PRIMARY KEY AUTOINCREMENT, report TEXT NOT NULL)")
+    }
+
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 2) createDiagnostics(db)
+    }
+
+    @Synchronized
+    fun addDiagnostic(report: String) {
+        val db = writableDatabase
+        db.insert("diagnostics", null, ContentValues().apply { put("report", report) })
+        db.execSQL("DELETE FROM diagnostics WHERE id <= (SELECT MAX(id) FROM diagnostics) - 20")
+    }
+
+    /** Newest first. */
+    @Synchronized
+    fun diagnostics(): List<String> =
+        readableDatabase.rawQuery("SELECT report FROM diagnostics ORDER BY id DESC", null).use { cursor ->
+            buildList { while (cursor.moveToNext()) add(cursor.getString(0)) }
+        }
+
+    @Synchronized
+    fun clearDiagnostics() {
+        writableDatabase.execSQL("DELETE FROM diagnostics")
+    }
 
     /**
      * Records a captured message. Returns true when it was queued for upload:

@@ -98,5 +98,28 @@
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small" />
+
+        <TextView style="@android:style/TextAppearance.DeviceDefault.Medium"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="@string/section_diagnostics" android:textStyle="bold" />
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" android:text="@string/diagnostics_help"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small" />
+        <LinearLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button android:id="@+id/diagnostics_copy"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="@string/copy" />
+            <Button android:id="@+id/diagnostics_clear"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="@string/clear" />
+        </LinearLayout>
+        <TextView android:id="@+id/diagnostics_text"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" android:fontFamily="monospace" android:textIsSelectable="true"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small" />
     </LinearLayout>
 </ScrollView>

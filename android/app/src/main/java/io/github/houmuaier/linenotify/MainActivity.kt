@@ -1,6 +1,8 @@
 package io.github.houmuaier.linenotify
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
@@ -17,6 +19,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Switch
 import android.widget.TextView
+import android.widget.Toast
 import java.net.URL
 import java.util.Date
 import java.util.concurrent.Executors
@@ -47,6 +50,22 @@ class MainActivity : Activity() {
             startActivity(Intent(SystemSettings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
         }
         findViewById<Button>(R.id.send_now_button).setOnClickListener { UploadWorker.enqueue(this) }
+        findViewById<Button>(R.id.diagnostics_copy).setOnClickListener {
+            background.execute {
+                val text = store.diagnostics().joinToString("\n")
+                main.post {
+                    getSystemService(ClipboardManager::class.java)
+                        .setPrimaryClip(ClipData.newPlainText("line-notify diagnostics", text))
+                    Toast.makeText(this, R.string.copied, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        findViewById<Button>(R.id.diagnostics_clear).setOnClickListener {
+            background.execute {
+                store.clearDiagnostics()
+                main.post { refresh() }
+            }
+        }
         findViewById<Button>(R.id.exclude_button).setOnClickListener {
             val input = findViewById<EditText>(R.id.exclude_input)
             val name = input.text.toString().trim()
@@ -160,6 +179,7 @@ class MainActivity : Activity() {
             val queue = store.queueSize()
             val chats = store.chats()
             val recent = store.recent()
+            val diagnostics = store.diagnostics()
             val paired = settings.isPaired
             val revoked = settings.revoked
             val host = settings.serverUrl?.let { runCatching { URL(it).host }.getOrNull() } ?: ""
@@ -185,6 +205,9 @@ class MainActivity : Activity() {
                     else recent.joinToString("\n\n") {
                         getString(R.string.recent_line, formatTime(it.sentAt), it.chat, it.sender, it.body.take(60))
                     }
+                findViewById<TextView>(R.id.diagnostics_text).text =
+                    if (diagnostics.isEmpty()) getString(R.string.diagnostics_empty)
+                    else getString(R.string.diagnostics_count, diagnostics.size) + "\n\n" + diagnostics.first()
                 showChats(chats)
             }
         }

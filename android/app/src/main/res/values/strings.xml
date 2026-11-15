@@ -39,4 +39,12 @@
     <string name="section_recent">直近に取得したメッセージ（この端末内の表示用）</string>
     <string name="no_recent">まだありません。</string>
     <string name="recent_line">%1$s｜%2$s｜%3$s\n%4$s</string>
+
+    <string name="section_diagnostics">診断（通知の構造）</string>
+    <string name="diagnostics_help">LINE の通知に入っている項目の名前と型、画像の大きさ、画像をこのアプリで開けるかを記録します。メッセージ本文・名前・画像そのものは記録しません。写真を受け取ったあと「コピー」を押し、Claude に貼り付けてください。</string>
+    <string name="diagnostics_empty">まだ記録がありません。</string>
+    <string name="diagnostics_count">記録: %1$d 件（新しい順に最大 20 件）</string>
+    <string name="copy">コピー</string>
+    <string name="clear">消去</string>
+    <string name="copied">コピーしました。</string>
 </resources>

@@ -29,6 +29,12 @@ class LineListenerService : NotificationListenerService() {
         if (sbn.packageName != Extractor.LINE_PACKAGE) return
         val fields = Extractor.fieldsOf(sbn.notification, sbn.postTime)
         worker.execute {
+            // Structure only (no message text or image data); see Diagnostics.
+            try {
+                Store.get(applicationContext).addDiagnostic(Diagnostics.describe(applicationContext, sbn))
+            } catch (e: Exception) {
+                Store.get(applicationContext).addDiagnostic("diagnostics failed: ${e.javaClass.simpleName}")
+            }
             val settings = Settings(applicationContext)
             if (!settings.isPaired) return@execute
             val store = Store.get(applicationContext)
