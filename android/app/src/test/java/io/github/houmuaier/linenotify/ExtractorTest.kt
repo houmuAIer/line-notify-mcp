@@ -181,6 +181,9 @@ class ExtractorTest {
         assertEquals("image/webp", Api.sniffImageType("RIFF\u0000\u0000\u0000\u0000WEBPVP8 ".toByteArray()))
         assertNull(Api.sniffImageType("<html>".toByteArray()))
         assertNull(Api.sniffImageType(ByteArray(0)))
+        assertEquals("image/heif", imageKind("\u0000\u0000\u0000\u0018ftypheic".toByteArray()))
+        assertEquals("image/png", imageKind(bytes(0x89, 'P'.code, 'N'.code, 'G'.code, 13, 10, 26, 10)))
+        assertNull(imageKind("\u0000\u0000\u0000\u0018ftypmp42".toByteArray())) // a video
     }
 
     @Test

@@ -24,6 +24,8 @@
             </intent-filter>
         </activity>
 
+        <!-- Any type: LINE shares photos without saying they are images, so the
+             activity checks the content itself and keeps only images. -->
         <activity
             android:name=".ShareActivity"
             android:exported="true"
@@ -32,12 +34,12 @@
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="image/*" />
+                <data android:mimeType="*/*" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="image/*" />
+                <data android:mimeType="*/*" />
             </intent-filter>
         </activity>
 

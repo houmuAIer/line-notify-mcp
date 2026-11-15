@@ -62,5 +62,6 @@
     <string name="share_queued_with_failures">%1$d 枚を送信待ちに入れました（%2$d 枚は読み込めませんでした）。</string>
     <string name="share_excluded">このトークは取り込み対象外に設定されているため、保存しませんでした。</string>
     <string name="share_not_paired">このアプリがまだペアリングされていません。アプリを開いてペアリングしてください。</string>
-    <string name="share_no_images">写真が見つかりませんでした（動画は保存の対象外です）。</string>
+    <string name="share_no_images">写真が見つかりませんでした（動画は保存の対象外です。受け取った形式: %1$s）。</string>
+    <string name="share_checking">共有されたファイルを確認しています…</string>
 </resources>

@@ -33,43 +33,69 @@ class ShareActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_share)
-        images = sharedImages(intent)
 
         val settings = Settings(this)
         val status = findViewById<TextView>(R.id.share_status)
         val send = findViewById<Button>(R.id.share_send)
         findViewById<Button>(R.id.share_cancel).setOnClickListener { finish() }
+        send.visibility = View.GONE
 
-        when {
-            !settings.isPaired || settings.revoked -> {
-                status.setText(R.string.share_not_paired)
-                send.visibility = View.GONE
-                return
-            }
-            images.isEmpty() -> {
-                status.setText(R.string.share_no_images)
-                send.visibility = View.GONE
-                return
-            }
+        if (!settings.isPaired || settings.revoked) {
+            status.setText(R.string.share_not_paired)
+            return
         }
-        status.text = getString(R.string.share_count, images.size)
-
+        status.setText(R.string.share_checking)
+        val shared = sharedUris(intent)
         background.execute {
-            val list = Store.get(this).includedChats(CHAT_CHOICES)
-            main.post { showChats(list) }
+            // Reading the files to tell images apart can take a moment; the
+            // permission to read them lasts as long as this activity.
+            val found = shared.filter(::isImage)
+            val store = Store.get(this)
+            store.addDiagnostic(describeShare(intent, shared, found.size))
+            val list = store.includedChats(CHAT_CHOICES)
+            main.post {
+                images = found
+                if (found.isEmpty()) {
+                    status.text = getString(R.string.share_no_images, intent.type ?: "?")
+                    return@post
+                }
+                status.text = getString(R.string.share_count, found.size)
+                showChats(list)
+                send.visibility = View.VISIBLE
+                send.setOnClickListener { submit() }
+            }
         }
-        send.setOnClickListener { submit() }
     }
 
-    private fun sharedImages(intent: Intent): List<Uri> {
+    private fun sharedUris(intent: Intent): List<Uri> {
         @Suppress("DEPRECATION")
-        val uris = when (intent.action) {
+        return when (intent.action) {
             Intent.ACTION_SEND -> listOfNotNull(intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))
             Intent.ACTION_SEND_MULTIPLE -> intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM).orEmpty()
             else -> emptyList()
         }
-        // A share may mix images and videos; keep the images.
-        return uris.filter { uri -> contentResolver.getType(uri)?.startsWith("image/") ?: (intent.type?.startsWith("image/") == true) }
+    }
+
+    /** Decides by the file's first bytes, since the declared type may be generic or absent. Videos are left out. */
+    private fun isImage(uri: Uri): Boolean = try {
+        contentResolver.openInputStream(uri)?.use { input ->
+            val head = ByteArray(16)
+            val n = input.read(head)
+            n > 0 && imageKind(head.copyOf(n)) != null
+        } ?: false
+    } catch (e: Exception) {
+        false
+    }
+
+    /** Structure only, for the diagnostics panel: what was shared and with which declared types. */
+    private fun describeShare(intent: Intent, uris: List<Uri>, images: Int): String = buildString {
+        append("== share ").append(java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.ROOT).format(java.util.Date())).append('\n')
+        append("action=").append(intent.action).append(" intentType=").append(intent.type)
+            .append(" items=").append(uris.size).append(" images=").append(images).append('\n')
+        uris.forEach { uri ->
+            append("  ").append(uri.scheme).append("://").append(uri.authority)
+                .append(" type=").append(runCatching { contentResolver.getType(uri) }.getOrNull()).append('\n')
+        }
     }
 
     private fun showChats(list: List<Chat>) {

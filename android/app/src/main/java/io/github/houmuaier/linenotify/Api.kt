@@ -168,3 +168,10 @@ object Api {
         }
     }
 }
+
+/** The image format of a file from its first bytes, including HEIF and AVIF, which are converted before upload. */
+fun imageKind(head: ByteArray): String? = Api.sniffImageType(head) ?: when {
+    head.size >= 12 && String(head, 4, 4, Charsets.US_ASCII) == "ftyp" &&
+        String(head, 8, 4, Charsets.US_ASCII) in setOf("heic", "heix", "mif1", "msf1", "avif") -> "image/heif"
+    else -> null
+}
