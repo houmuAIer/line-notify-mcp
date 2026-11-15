@@ -16,6 +16,12 @@ import { fileURLToPath } from 'node:url';
 const WORKER_NAME = 'line-notify-mcp';
 const DATABASE_NAME = 'line-notify';
 const KV_TITLE = 'line-notify-oauth';
+const BUCKET_NAME = 'line-notify-media';
+const R2_BLOCK = `
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "${BUCKET_NAME}"
+`;
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const workerDir = join(repoRoot, 'worker');
@@ -97,7 +103,7 @@ const loggedIn = () => {
 if (!loggedIn()) {
   // wrangler opens the browser; the user approves there and it saves the login on this machine.
   console.log('Not logged in to Cloudflare. A browser window will open: press "Allow" there.');
-  const login = spawnSync(process.execPath, [wranglerBin, 'login'], { cwd: workerDir, stdio: 'inherit' });
+  const login = spawnSync(process.execPath, [wranglerBin, 'login'], { cwd: workerDir, stdio: ['ignore', 'inherit', 'inherit'] });
   if (login.status !== 0 || !loggedIn()) fail('Cloudflare login did not complete. Run this again.');
 }
 console.log('Logged in to Cloudflare.');
@@ -161,11 +167,39 @@ migrations_dir = "${workerFromConfig}/migrations"
 [[kv_namespaces]]
 binding = "OAUTH_KV"
 id = "${namespace.id}"
-`
+${R2_BLOCK}`
   );
   console.log(`Wrote ${configPath}`);
 } else if (readFileSync(configPath, 'utf8').includes('REPLACE_WITH')) {
   fail(`${configPath} still has REPLACE_WITH placeholders. Fill them in, or delete the file to have it written for you.`);
+}
+
+// ---------------------------------------------------- images (R2, v0.3)
+
+step('Preparing image storage (R2)');
+const bucketListed = (output) => new RegExp(`^\\s*name:\\s+${BUCKET_NAME}\\s*$`, 'm').test(output);
+const buckets = wrangler(['r2', 'bucket', 'list'], { quiet: true, allowFailure: true, useConfig: false });
+if (!buckets.ok || !bucketListed(buckets.stdout)) {
+  const created = spawnSync(process.execPath, [wranglerBin, 'r2', 'bucket', 'create', BUCKET_NAME], {
+    cwd: workerDir,
+    encoding: 'utf8',
+  });
+  const output = `${created.stdout}${created.stderr}`;
+  if (created.status !== 0 && !/already exists/i.test(output)) {
+    if (/enable R2|10042/i.test(output)) {
+      fail(`R2 is not enabled on this Cloudflare account yet.
+  Open https://dash.cloudflare.com/?to=/:account/r2/overview , enable R2 (a payment method is required;
+  the free tier is not charged), then run this again.`);
+    }
+    console.error(output);
+    fail('could not create the R2 bucket');
+  }
+}
+console.log(`R2 bucket ready: ${BUCKET_NAME}`);
+const config = readFileSync(configPath, 'utf8');
+if (!/binding\s*=\s*"MEDIA"/.test(config)) {
+  writeFileSync(configPath, config.trimEnd() + '\n' + R2_BLOCK);
+  console.log(`Added the image storage to ${configPath}`);
 }
 
 // -------------------------------------------------------------- deploy

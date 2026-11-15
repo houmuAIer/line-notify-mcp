@@ -3,9 +3,9 @@
 Android に届く LINE の通知を拾い、自分の Cloudflare アカウント上の MCP サーバーに保存して、Claude から読めるようにする個人用ツールです。
 
 ```
-LINE の通知 ──▶ Android アプリ ──HTTPS──▶ Cloudflare Worker ──▶ D1
-                                              ▲
-                              Claude ──MCP────┘ （GitHub でサインイン）
+LINE の通知 ─────────────▶ Android アプリ ──HTTPS──▶ Cloudflare Worker ──▶ D1（メッセージ）
+LINE の共有メニュー（写真）─▶                                │        └──▶ R2（画像）
+                                                      Claude ──MCP──┘ （GitHub でサインイン）
 ```
 
 - `android/` … 通知リスナーアプリ（Kotlin）
@@ -16,10 +16,12 @@ LINE 株式会社とは無関係の非公式ツールです。
 
 ## できること・できないこと
 
-通知に表示された内容だけを保存します。
+通知に表示された内容を保存します。
 
 - 長いメッセージは途中で切れることがあります。
-- 画像・スタンプは「画像を送信しました」のような文言になります。
+- 写真と動画は、通知には「〜が写真を送信しました」という文言しか載りません（LINE for Android の通知に画像は添付されていません）。写真は、LINE で写真を開いて共有メニューから「Claudeに保存」を選ぶと保存できます。動画は対象外です。
+- スタンプは、通知に載る画像の URL から自動で保存します。
+- トークは LINE のトーク ID で見分けるので、グループ名が変わっても同じトークとして扱います。
 - 通知をオフにしているトーク、自分が LINE アプリから送ったメッセージは取れません。
 - 端末の切り替え中など、アプリが動いていない間の通知は取れません。
 - Claude に新着が通知されることはありません。聞かれたときに読みに行きます。
@@ -37,7 +39,7 @@ LINE 株式会社とは無関係の非公式ツールです。
 
 ## セットアップ
 
-必要なもの: Node.js 20 以上、Cloudflare アカウント、GitHub アカウント、Android 10 以上の端末。
+必要なもの: Node.js 20 以上、Cloudflare アカウント（画像の保存に R2 を使うため、支払い方法の登録が必要。無料枠の範囲では課金されません）、GitHub アカウント、Android 10 以上の端末。
 
 ### 1. サーバー
 
@@ -50,7 +52,7 @@ node scripts/deploy.mjs --config-dir ../line-notify-mcp-private --github-user-id
 
 数値ユーザー ID は `https://api.github.com/users/<ユーザー名>` の `id` です。
 
-Cloudflare に未ログインならブラウザが開くので、許可してください。続けてスクリプトが D1 と KV を作成し、`--config-dir` に `wrangler.toml` を書き出してデプロイします。初回は GitHub OAuth アプリの作成手順が表示されるので、Client ID と Client secret を入力してください。2 回目以降は差分だけを反映します。
+Cloudflare に未ログインならブラウザが開くので、許可してください。続けてスクリプトが D1・KV・R2 を作成し、`--config-dir` に `wrangler.toml` を書き出してデプロイします。初回は GitHub OAuth アプリの作成手順が表示されるので、Client ID と Client secret を入力してください。2 回目以降は差分だけを反映します。
 
 ### 2. Claude
 
@@ -83,6 +85,9 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 | `search_messages` | 本文の部分一致検索 |
 | `list_chats` | トークの一覧と件数、除外中のトーク |
 | `delete_messages` | 条件に合うメッセージの削除（`confirm` なしは件数の確認だけ） |
+| `list_media` | 保存した画像（共有された写真、スタンプ）の一覧 |
+| `get_media` | 画像を Claude に見せる |
+| `delete_media` | 条件に合う画像の削除（`confirm` なしは件数の確認だけ） |
 | `create_pairing_code` | スマホ用のペアリングコードを発行 |
 | `list_devices` / `revoke_device` | ペアリング済み端末の一覧と失効 |
 
@@ -93,4 +98,4 @@ cd worker && npm test          # workerd 上での結合テスト
 cd android && ./gradlew testDebugUnitTest
 ```
 
-通知からの読み取りは `android/.../Extractor.kt` にまとまっています。LINE の通知の形はアプリの更新で変わりうるので、取りこぼしや送信者名のずれに気づいたらここを直してください。
+通知からの読み取りは `android/.../Extractor.kt` にまとまっています。アプリの「診断」欄で、通知に入っている項目の名前と型（本文や画像の中身は除く）を確認できます。LINE の通知の形はアプリの更新で変わりうるので、取りこぼしや送信者名のずれに気づいたらここを直してください。

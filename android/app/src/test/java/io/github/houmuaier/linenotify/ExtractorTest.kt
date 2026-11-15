@@ -18,8 +18,13 @@ class ExtractorTest {
         isGroupSummary: Boolean = false,
         category: String? = "msg",
         time: Long = 1000L,
+        chatId: String? = null,
+        messageId: String? = null,
+        stickerId: String? = null,
+        stickerUrl: String? = null,
     ) = NotificationFields(
-        isGroupSummary, category, title, text, bigText, conversationTitle, isGroupConversation, selfName, messages, time
+        isGroupSummary, category, title, text, bigText, conversationTitle, isGroupConversation, selfName, messages, time,
+        chatId, messageId, stickerId, stickerUrl,
     )
 
     @Test
@@ -111,6 +116,71 @@ class ExtractorTest {
         assertNotEquals(base.dedupKey, base.copy(sentAt = 11L).dedupKey)
         // Fields are delimited, so text cannot shift between them and collide.
         assertNotEquals(Captured("ab", "c", "x", false, 1L).dedupKey, Captured("a", "bc", "x", false, 1L).dedupKey)
+    }
+
+    @Test
+    fun lineIdsFromMessagingStyle() {
+        val result = Extractor.extract(
+            fields(
+                title = "家族",
+                conversationTitle = "家族",
+                isGroupConversation = true,
+                chatId = "c123",
+                messageId = "m2",
+                stickerId = "52002734",
+                stickerUrl = "https://stickershop.example/52002734.png",
+                messages = listOf(
+                    StyleMessage("夕飯は？", "母", 10L, messageId = "m1"),
+                    StyleMessage("母がスタンプを送信しました", "母", 20L, messageId = "m2"),
+                ),
+            )
+        )
+        assertEquals(listOf("c123", "c123"), result.map { it.chatId })
+        assertEquals(listOf("m1", "m2"), result.map { it.messageId })
+        // The sticker belongs to the message the notification is about, not to the earlier one.
+        assertEquals(listOf(null, "52002734"), result.map { it.stickerId })
+        assertEquals(listOf(null, "https://stickershop.example/52002734.png"), result.map { it.stickerUrl })
+        assertEquals(listOf("line:m1", "line:m2"), result.map { it.dedupKey })
+        assertEquals("c123", result[0].chatKey)
+    }
+
+    @Test
+    fun notificationIdsGoToTheNewestMessageWhenMessagesHaveNone() {
+        val result = Extractor.extract(
+            fields(
+                title = "田中",
+                chatId = "u9",
+                messageId = "m9",
+                messages = listOf(StyleMessage("一通目", "田中", 10L), StyleMessage("二通目", "田中", 20L)),
+            )
+        )
+        assertEquals(listOf(null, "m9"), result.map { it.messageId })
+        assertEquals(64, result[0].dedupKey.length) // content hash when there is no id
+        assertEquals("line:m9", result[1].dedupKey)
+    }
+
+    @Test
+    fun idsFromPlainNotification() {
+        val result = Extractor.extract(fields(title = "田中", text = "こんにちは", chatId = "u9", messageId = "m1"))
+        assertEquals("line:m1", result.single().dedupKey)
+        assertEquals("u9", result.single().chatId)
+    }
+
+    @Test
+    fun chatKeyFallsBackToName() {
+        assertEquals("name:田中", Captured("田中", "田中", "x", false, 1L).chatKey)
+        assertEquals("name:田中", chatKeyOf(null, "田中"))
+    }
+
+    @Test
+    fun imageTypeSniffing() {
+        fun bytes(vararg values: Int) = ByteArray(values.size) { values[it].toByte() }
+        assertEquals("image/png", Api.sniffImageType(bytes(0x89, 'P'.code, 'N'.code, 'G'.code, 13, 10, 26, 10)))
+        assertEquals("image/jpeg", Api.sniffImageType(bytes(0xFF, 0xD8, 0xFF, 0xE0)))
+        assertEquals("image/gif", Api.sniffImageType("GIF89a....".toByteArray()))
+        assertEquals("image/webp", Api.sniffImageType("RIFF\u0000\u0000\u0000\u0000WEBPVP8 ".toByteArray()))
+        assertNull(Api.sniffImageType("<html>".toByteArray()))
+        assertNull(Api.sniffImageType(ByteArray(0)))
     }
 
     @Test

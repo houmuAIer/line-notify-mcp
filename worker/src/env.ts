@@ -3,6 +3,7 @@ import type { OAuthHelpers } from '@cloudflare/workers-oauth-provider';
 export interface Env {
   DB: D1Database;
   OAUTH_KV: KVNamespace;
+  MEDIA: R2Bucket;
   OAUTH_PROVIDER: OAuthHelpers;
   /** Numeric GitHub user ID of the only account allowed to sign in. */
   ALLOWED_GITHUB_USER_ID: string;

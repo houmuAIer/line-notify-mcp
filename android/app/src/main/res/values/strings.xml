@@ -26,7 +26,7 @@
     <string name="open_app_info">アプリ情報を開く</string>
 
     <string name="section_upload">送信状況</string>
-    <string name="upload_status">未送信: %1$d 件\n最終送信: %2$s\n直近のエラー: %3$s</string>
+    <string name="upload_status">未送信: メッセージ %1$d 件 / 画像 %2$d 件\n最終送信: %3$s\n直近のエラー: %4$s</string>
     <string name="none">なし</string>
     <string name="send_now">今すぐ送信</string>
 
@@ -47,4 +47,20 @@
     <string name="copy">コピー</string>
     <string name="clear">消去</string>
     <string name="copied">コピーしました。</string>
+
+    <string name="share_target_label">Claudeに保存</string>
+    <string name="share_title">LINEの写真をClaudeに保存</string>
+    <string name="share_count">%1$d 枚の写真</string>
+    <string name="share_which_chat">どのトークの写真ですか（直近に通知が来たトークが上です）</string>
+    <string name="share_other_chat">その他（トーク名を入力）</string>
+    <string name="share_other_hint">トーク名</string>
+    <string name="share_send">保存する</string>
+    <string name="share_cancel">キャンセル</string>
+    <string name="share_preparing">写真を縮小しています…</string>
+    <string name="share_pick_chat">トークを選ぶか、トーク名を入力してください。</string>
+    <string name="share_queued">%1$d 枚を送信待ちに入れました。</string>
+    <string name="share_queued_with_failures">%1$d 枚を送信待ちに入れました（%2$d 枚は読み込めませんでした）。</string>
+    <string name="share_excluded">このトークは取り込み対象外に設定されているため、保存しませんでした。</string>
+    <string name="share_not_paired">このアプリがまだペアリングされていません。アプリを開いてペアリングしてください。</string>
+    <string name="share_no_images">写真が見つかりませんでした（動画は保存の対象外です）。</string>
 </resources>

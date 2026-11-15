@@ -9,9 +9,14 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import java.io.File
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-/** Sends the queue to the server. Runs when there is a network, and retries with backoff. */
+/**
+ * Sends the queues to the server: exclusions, then messages, then images.
+ * Runs when there is a network, and retries with backoff.
+ */
 class UploadWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
 
     override fun doWork(): Result {
@@ -27,16 +32,17 @@ class UploadWorker(context: Context, params: WorkerParameters) : Worker(context,
 
         try {
             if (settings.exclusionsDirty) {
-                Api.putExclusions(serverUrl, token, store.excludedChats())
+                Api.putExclusions(serverUrl, token, store.excludedEntries())
                 settings.exclusionsDirty = false
             }
             while (true) {
                 val batch = store.nextBatch(BATCH_SIZE)
                 if (batch.isEmpty()) break
-                Api.upload(serverUrl, token, batch.map { it.message })
+                Api.upload(serverUrl, token, batch)
                 store.removeFromQueue(batch.map { it.rowId })
                 settings.lastUploadAt = System.currentTimeMillis()
             }
+            uploadMedia(store, settings, serverUrl, token)
             settings.lastError = null
             return Result.success()
         } catch (e: HttpStatusException) {
@@ -54,8 +60,66 @@ class UploadWorker(context: Context, params: WorkerParameters) : Worker(context,
         }
     }
 
+    /**
+     * Uploads queued images one at a time. An image the server refuses, or a
+     * sticker LINE's server will not hand out, is dropped with a note in
+     * lastError rather than blocking the queue. Network failures propagate,
+     * so the run is retried.
+     */
+    private fun uploadMedia(store: Store, settings: Settings, serverUrl: String, token: String) {
+        while (true) {
+            val batch = store.nextMedia(MEDIA_BATCH)
+            if (batch.isEmpty()) return
+            for (media in batch) {
+                val content = try {
+                    load(media)
+                } catch (e: HttpStatusException) {
+                    if (e.status in 400..499) null else throw e
+                } catch (e: NotAnImage) {
+                    null
+                }
+                if (content == null) {
+                    settings.lastError = "画像を取得できなかったため送信をやめました（${media.kind}）"
+                    finish(store, media)
+                    continue
+                }
+                try {
+                    Api.uploadMedia(serverUrl, token, media, content.mime, content.bytes)
+                } catch (e: HttpStatusException) {
+                    if (e.status == 401 || e.status !in 400..499) throw e
+                    settings.lastError = "サーバーが画像を受け付けませんでした（HTTP ${e.status}）"
+                }
+                finish(store, media)
+                settings.lastUploadAt = System.currentTimeMillis()
+            }
+        }
+    }
+
+    private class NotAnImage : IOException("not an image")
+
+    private fun load(media: QueuedMedia): Downloaded? {
+        media.filePath?.let { path ->
+            val file = File(path)
+            if (!file.exists()) return null
+            return Downloaded(file.readBytes(), media.mime ?: "image/jpeg")
+        }
+        val url = media.sourceUrl ?: return null
+        return try {
+            Api.downloadImage(url)
+        } catch (e: IOException) {
+            if (e.message == "not an image" || e.message == "sticker too large") throw NotAnImage()
+            throw e
+        }
+    }
+
+    private fun finish(store: Store, media: QueuedMedia) {
+        store.removeMedia(media.rowId)
+        media.filePath?.let { File(it).delete() }
+    }
+
     companion object {
         private const val BATCH_SIZE = 20
+        private const val MEDIA_BATCH = 5
         private const val WORK_NAME = "upload"
 
         fun enqueue(context: Context) {

@@ -71,7 +71,7 @@ class MainActivity : Activity() {
             val name = input.text.toString().trim()
             if (name.isNotEmpty()) {
                 input.text.clear()
-                setExcluded(name, true)
+                changeExclusions { store.excludeByName(name) }
             }
         }
     }
@@ -102,7 +102,7 @@ class MainActivity : Activity() {
                 val result = Api.pair(pairing, "${Build.MANUFACTURER} ${Build.MODEL}")
                 settings.savePairing(pairing.serverUrl, result.token)
                 // The server's list is what the previous phone had excluded.
-                result.exclusions.forEach { store.setExcluded(it, true) }
+                store.applyExclusions(result.exclusions)
                 // Anything excluded here before pairing goes up with the next upload.
                 settings.exclusionsDirty = true
                 UploadWorker.enqueue(this)
@@ -160,9 +160,11 @@ class MainActivity : Activity() {
 
     // -------------------------------------------------------------- chats
 
-    private fun setExcluded(chat: String, excluded: Boolean) {
+    private fun setExcluded(key: String, excluded: Boolean) = changeExclusions { store.setExcluded(key, excluded) }
+
+    private fun changeExclusions(change: () -> Unit) {
         background.execute {
-            store.setExcluded(chat, excluded)
+            change()
             settings.exclusionsDirty = true
             if (settings.isPaired) UploadWorker.enqueue(this)
             main.post { refresh() }
@@ -177,6 +179,7 @@ class MainActivity : Activity() {
     private fun refresh() {
         background.execute {
             val queue = store.queueSize()
+            val mediaQueue = store.mediaQueueSize()
             val chats = store.chats()
             val recent = store.recent()
             val diagnostics = store.diagnostics()
@@ -199,7 +202,9 @@ class MainActivity : Activity() {
                     if (ignoresBatteryOptimizations()) R.string.battery_ok else R.string.battery_not_ok
                 )
                 findViewById<TextView>(R.id.upload_status).text =
-                    getString(R.string.upload_status, queue, formatTime(lastUpload), lastError ?: getString(R.string.none))
+                    getString(
+                        R.string.upload_status, queue, mediaQueue, formatTime(lastUpload), lastError ?: getString(R.string.none)
+                    )
                 findViewById<TextView>(R.id.recent_list).text =
                     if (recent.isEmpty()) getString(R.string.no_recent)
                     else recent.joinToString("\n\n") {
@@ -233,7 +238,7 @@ class MainActivity : Activity() {
                     layoutParams = LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
                     )
-                    setOnCheckedChangeListener { _, checked -> setExcluded(chat.name, !checked) }
+                    setOnCheckedChangeListener { _, checked -> setExcluded(chat.key, !checked) }
                 }
             )
         }
