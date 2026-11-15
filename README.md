@@ -12,7 +12,7 @@ LINE の共有メニュー（写真）─▶                                │ 
 - `worker/` … Cloudflare Worker（取り込み API、MCP サーバー、OAuth）
 - `scripts/deploy.mjs` … デプロイ用スクリプト
 
-LINE 株式会社とは無関係の非公式ツールです。
+LINEヤフー株式会社とは無関係の非公式ツールです。LINE は LINEヤフー株式会社の商標または登録商標です。
 
 ## できること・できないこと
 
